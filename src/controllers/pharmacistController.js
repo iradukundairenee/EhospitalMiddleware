@@ -1,43 +1,39 @@
+import axios from "../utils/axios";
 import { catchAsync } from "../utils/catchAsync";
 
-const pharmacists = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "johndoe@gmail.com",
-    phone: "1234567890",
-    address: "123 Main St, Anytown USA",
-    qualifications: ["B.Pharm", "M.Pharm"],
-    experience: "5 years",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "janesmith@gmail.com",
-    phone: "0987654321",
-    address: "456 Oak St, Anytown USA",
-    qualifications: ["B.Pharm"],
-    experience: "2 years",
-  },
-  {
-    id: 3,
-    name: "Bob Johnson",
-    email: "bobjohnson@gmail.com",
-    phone: "5555555555",
-    address: "789 Elm St, Anytown USA",
-    qualifications: ["B.Pharm", "Pharm.D"],
-    experience: "10 years",
-  },
-];
 
 export const getAllPharmacists = catchAsync(async (req, res) => {
+
+  let decodedToken=req.decodedToken;
+  if(decodedToken.user.role !="patient"){
+
+    return res.status(401).json({
+      error:"you are not allowed"
+    })
+  }
+  let pharmacist =await axios(`pharmacist`)
   res.status(200).json({
     status: "success",
     data: {
-      pharmacists,
+      pharmacist,
     },
   });
 });
+
+
+export const getAllGrantedPharmacist = catchAsync(async (req, res) => {
+
+
+  let pharmacist=await axios(`pharmacist/granted`)
+
+    res.status(200).json({
+      status: "success",
+      results: pharmacist.data.length,
+      data: {
+        pharmacist:pharmacist.data
+      },
+    });
+  });
 
 export const getPharmacistById = catchAsync(async (req, res) => {
   const pharmacist = pharmacists.find((p) => p.id === parseInt(req.params.id));
@@ -57,27 +53,22 @@ export const getPharmacistById = catchAsync(async (req, res) => {
   });
 });
 
-export const createPharmacist = catchAsync(async (req, res) => {
-  const newPharmacist = {
-    id: pharmacists.length + 1,
-    name: req.body.name,
-    email: req.body.email,
-    phone: req.body.phone,
-    address: req.body.address,
-    qualifications: req.body.qualifications,
-    experience: req.body.experience,
-  };
+export const grantAccessToPharmacist = catchAsync(async (req, res) => {
+  const username = req.body;
+  let decodedToken=req.decodedToken;
+  if(decodedToken.user.role !="patient"){
 
-  pharmacists.push(newPharmacist);
+    return res.status(401).json({
+      error:"you are not allowed"
+    })
+  }
 
-  res.status(201).json({
-    status: "success",
-    data: {
-      pharmacist: newPharmacist,
-    },
+  await axios.post(`pharmacist`,username)
+    res.status(200).json({
+      status: "success",
+      message:"access granted"
+    });
   });
-});
-
 export const updatePharmacistById = catchAsync(async (req, res) => {
   const pharmacist = pharmacists.find((p) => p.id === parseInt(req.params.id));
 

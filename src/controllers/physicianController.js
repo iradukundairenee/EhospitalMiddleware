@@ -1,27 +1,59 @@
+import axios from "../utils/axios";
 import { catchAsync } from "../utils/catchAsync";
 
-let physicians = [
-  {
-    id: 1,
-    name: "John Doe",
-    specialty: "Cardiology",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    specialty: "Neurology",
-  },
-];
 
 export const getAllPhysicians = catchAsync(async (req, res) => {
+
+  let decodedToken=req.decodedToken;
+  if(decodedToken.user.role !="patient"){
+
+    return res.status(401).json({
+      error:"you are not allowed"
+    })
+  }
+
+let physicians=await axios(`physicians`)
   res.status(200).json({
     status: "success",
-    results: physicians.length,
+    results: physicians.data.length,
     data: {
-      physicians,
+      physicians:physicians.data
     },
   });
 });
+
+
+export const getAllGrantedPhysician = catchAsync(async (req, res) => {
+
+
+let physicians=await axios(`physicians/granted`)
+  res.status(200).json({
+    status: "success",
+    results: physicians.data.length,
+    data: {
+      physicians:physicians.data
+    },
+  });
+});
+
+
+export const grantAccessToPhysician = catchAsync(async (req, res) => {
+  const username = req.body;
+  let decodedToken=req.decodedToken;
+  if(decodedToken.user.role !="patient"){
+
+    return res.status(401).json({
+      error:"you are not allowed"
+    })
+  }
+
+  await axios.post(`physicians`,username)
+    res.status(200).json({
+      status: "success",
+      message:"access granted"
+    });
+  });
+
 
 export const getPhysicianById = catchAsync(async (req, res) => {
   const physician = physicians.find((p) => p.id === parseInt(req.params.id));
