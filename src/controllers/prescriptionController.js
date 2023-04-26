@@ -1,3 +1,4 @@
+import axios from "../utils/axios";
 import { catchAsync } from "../utils/catchAsync";
 
 // Define prescription data
@@ -32,10 +33,27 @@ const convertToCSV = (data) => {
 };
 
 // Controller function to get all prescriptions
-export const getAllPrescriptions = (req, res) => {
-  res.json(prescriptions);
-};
+export const getAllPrescriptions = catchAsync(async (req, res) => {
+  let prescription = await axios(`/prescription`)
+  res.status(200).json({
+    status: "success",
+    results:prescription.data.length,
+    data: {
+      prescription:prescription.data
+    },
+  });
+  });
 
+
+  export const createPrescription = catchAsync(async (req, res) => {
+    const prescription = req.body;
+      await axios.post(`prescription`, prescription)
+        res.status(200).json({
+          status: "success",
+          message:"prescription created"
+        });
+      });
+    
 // Controller function to get a prescription by ID
 export const getPrescriptionById = (req, res) => {
   const { id } = req.params;
@@ -49,11 +67,6 @@ export const getPrescriptionById = (req, res) => {
   res.json(prescription);
 };
 
-// Controller function to create a new prescription
-export const createPrescription = (req, res) => {
-  // TODO: Implement the logic to create a new prescription
-  res.send("Not implemented yet");
-};
 
 // Controller function to download a prescription
 export const downloadPrescription = catchAsync(async (req, res) => {
